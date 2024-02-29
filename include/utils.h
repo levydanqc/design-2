@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include <curveFitting.h>
+
 int readButtons()
 {
   int adcKeyIn = analogRead(0);
@@ -13,7 +16,6 @@ int readButtons()
     return Btn::SELECT;
   return Btn::NONE;
 }
-
 
 void setupPWM16()
 {
@@ -47,4 +49,14 @@ void analogWrite16(uint8_t pin, uint16_t val)
     OCR1B = val;
     break;
   }
+}
+
+void getCoefs(double *coeffs, double *x, double *y)
+{
+  fitCurve(1, nbPoints, x, y, 2, coeffs);
+
+  Serial.print("Coeffs: ");
+  Serial.print(coeffs[0]);
+  Serial.print(", ");
+  Serial.println(coeffs[1]);
 }
