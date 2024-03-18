@@ -56,6 +56,8 @@
     <div class="left-side">
         <div class="poids-label">Poids mesuré:</div>
         <div class="poids-value" id="poids-value">0</div>
+        <div class="consigne-value" id="consigne-value"></div>
+
     </div>
     <div class="right-side">
         <button class="button" onclick="activerFonction(1)">Tare</button>
@@ -75,6 +77,10 @@
         var poidsValueElement = document.getElementById("poids-value");
         var poids = Math.random() * 100; // Remplacer par la valeur réelle du poids obtenue depuis l'Arduino
         poidsValueElement.textContent = poids.toFixed(2);
+    }
+    function updateconsigne() {
+        var phraseconsigne = document.getElementById("consigne-value")
+        phraseconsigne = "Voici la phrase consigne à afficher dans l'interface HTML.";
     }
 
     // Actualiser la valeur du poids toutes les 500 ms (simuler la lecture depuis Arduino)

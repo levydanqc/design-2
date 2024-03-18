@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import random
 import time
+from serial import Serial
 
 class InterfaceGraphique(tk.Tk):
     def __init__(self):
@@ -45,15 +46,27 @@ class InterfaceGraphique(tk.Tk):
 
     def activer_fonction1(self):
         # Appeler la fonction 1 sur l'Arduino
-        print("Fonction 1 activée")
+        print("Tare")
 
     def activer_fonction2(self):
         # Appeler la fonction 2 sur l'Arduino
-        print("Fonction 2 activée")
+        print("Étalonnage")
 
     def activer_fonction3(self):
         # Appeler la fonction 3 sur l'Arduino
-        print("Fonction 3 activée")
+        print("dénomination")
+    
+    def lire_valeur_serial():
+    # Ouvrir la connexion série
+        ser = Serial('COM1', 9600)  # Remplacer 'COM1' par le port série utilisé par votre Arduino
+
+        while True:
+            # Lire une ligne de données depuis le port série
+            valeur = ser.readline().decode().strip()
+            valeur_label.config(text=valeur)  # Mettre à jour l'étiquette Tkinter avec la valeur lue
+
+        # Fermer la connexion série
+        ser.close()
 
 if __name__ == "__main__":
     app = InterfaceGraphique()
