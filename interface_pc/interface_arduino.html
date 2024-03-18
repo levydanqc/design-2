@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interface Graphique avec Arduino</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+    }
+    .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+    }
+    .left-side {
+        flex: 1;
+        text-align: center;
+    }
+    .right-side {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .poids-label {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .poids-value {
+        font-size: 36px;
+        margin-top: 10px;
+    }
+    .button {
+        padding: 10px 20px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #4CAF50;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    .button:hover {
+        background-color: #45a049;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="left-side">
+        <div class="poids-label">Poids mesuré:</div>
+        <div class="poids-value" id="poids-value">0</div>
+    </div>
+    <div class="right-side">
+        <button class="button" onclick="activerFonction(1)">Tare</button>
+        <button class="button" onclick="activerFonction(2)">Étalonnage</button>
+        <button class="button" onclick="activerFonction(3)">Choix de dénomination</button>
+    </div>
+</div>
+
+<script>
+    function activerFonction(numero) {
+        console.log("Fonction " + numero + " activée");
+        // Ajoutez ici le code pour envoyer la commande à l'Arduino pour activer la fonction correspondante
+    }
+
+    // Fonction de mise à jour de la valeur du poids (simulation)
+    function updatePoidsValue() {
+        var poidsValueElement = document.getElementById("poids-value");
+        var poids = Math.random() * 100; // Remplacer par la valeur réelle du poids obtenue depuis l'Arduino
+        poidsValueElement.textContent = poids.toFixed(2);
+    }
+
+    // Actualiser la valeur du poids toutes les 500 ms (simuler la lecture depuis Arduino)
+    setInterval(updatePoidsValue, 500);
+</script>
+
+</body>
+</html>
