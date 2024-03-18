@@ -6,8 +6,8 @@
 #include <LiquidCrystal.h>
 #include <NoDelay.h>
 
-double x[nbPoints] = {299, 306, 333, 373, 445, 667, 1007};
-double y[nbPoints] = {1, 2, 5, 10, 20, 50, 100};
+double x[nbPoints] = {231, 238, 245, 267, 306, 382, 600, 989};
+double y[nbPoints] = {0, 1, 2, 5, 10, 20, 50, 100};
 double coeffs[2];
 uint8_t calibrationIndex = 0;
 
@@ -41,7 +41,7 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 uint8_t buttonState = Btn::NONE;
 uint8_t lastButtonState = Btn::NONE;
 uint8_t selectedOption = 0;
-uint16_t tareValue = 0;
+float tareValue = 0;
 Mode currentMode = Mode::MENU;
 Coin countSelectedCoin = Coin::FIVE;
 
@@ -49,8 +49,8 @@ String options[] = {"Peser", "Compter", "Mise a zero", "Etalonnage"};
 float coinWeights[] = {3.95, 1.75, 4.4, 6.27, 6.92};
 
 noDelay updatePwmOutputTimer(5, updatePwmOutput);
-noDelay updateWeightTimer(500, updateWeight);
-noDelay updateCountTimer(500, updateCount);
+noDelay updateWeightTimer(50, updateWeight);
+noDelay updateCountTimer(30, updateCount);
 noDelay updateButtonsTimer(10, updateButtons);
 
 void setup()
@@ -72,6 +72,7 @@ void setup()
 
 void loop()
 {
+  Serial.println(getCurrentAnalog());
   updatePwmOutputTimer.update();
   updateButtonsTimer.update();
 
@@ -156,7 +157,9 @@ void handleButtonPress(int button)
     {
       if (calibrationIndex < (nbPoints - 1))
       {
-        x[calibrationIndex] = getCurrentAnalog();
+        int current = getCurrentAnalog();
+        x[calibrationIndex] = current;
+        Serial.println(String(calibrationIndex) + ": " + String(current));
         calibrationIndex++;
       }
       else
@@ -264,7 +267,8 @@ void displayTare()
   lcd.print("Mise a zero");
   lcd.setCursor(0, 1);
   lcd.print("effectuee");
-  tareValue = getCurrentAnalog();
+  tareValue += getWeight();
+  Serial.println("Tared! : " + String(tareValue));
 }
 
 void displayCalibration()
@@ -279,17 +283,21 @@ void displayCalibration()
 int getCurrentAnalog()
 {
   int rawCurrent = analogRead(currentReadingPin);
-  float current = f2.filterIn(rawCurrent);
-  return current;
+  // int current = f2.filterIn(rawCurrent);
+  Serial.println("Current: " + String(rawCurrent));
+  return rawCurrent;
 }
 
 float getWeight()
 {
-  int current = getCurrentAnalog() - tareValue;
+  int current = getCurrentAnalog();
 
   float weight = coeffs[0] * current + coeffs[1];
-  
-  return weight;
+  if (weight < 0)
+  {
+    weight = 0;
+  }
+  return weight - tareValue;
 }
 
 String getCount()
