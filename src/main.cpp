@@ -49,7 +49,7 @@ String options[] = {"Peser", "Compter", "Mise a zero", "Etalonnage"};
 float coinWeights[] = {3.95, 1.75, 4.4, 6.27, 6.92};
 
 noDelay updatePwmOutputTimer(5, updatePwmOutput);
-noDelay updateWeightTimer(50, updateWeight);
+noDelay updateWeightTimer(300, updateWeight);
 noDelay updateCountTimer(30, updateCount);
 noDelay updateButtonsTimer(10, updateButtons);
 
@@ -72,7 +72,6 @@ void setup()
 
 void loop()
 {
-  Serial.println(getCurrentAnalog());
   updatePwmOutputTimer.update();
   updateButtonsTimer.update();
 
@@ -152,6 +151,10 @@ void handleButtonPress(int button)
     if (currentMode == Mode::MENU)
     {
       currentMode = static_cast<Mode>(selectedOption + 1);
+      if (currentMode == Mode::WEIGHT)
+      {
+        updateWeight();
+      }
     }
     else if (currentMode == Mode::ETALONNAGE)
     {
@@ -159,7 +162,6 @@ void handleButtonPress(int button)
       {
         int current = getCurrentAnalog();
         x[calibrationIndex] = current;
-        Serial.println(String(calibrationIndex) + ": " + String(current));
         calibrationIndex++;
       }
       else
@@ -219,6 +221,7 @@ void updateWeight()
 {
   lcd.setCursor(0, 1);
   float weight = getWeight();
+  
   lcd.print(String(weight, 2));
   lcd.print(" g");
 }
@@ -284,7 +287,6 @@ int getCurrentAnalog()
 {
   int rawCurrent = analogRead(currentReadingPin);
   // int current = f2.filterIn(rawCurrent);
-  Serial.println("Current: " + String(rawCurrent));
   return rawCurrent;
 }
 
@@ -293,10 +295,10 @@ float getWeight()
   int current = getCurrentAnalog();
 
   float weight = coeffs[0] * current + coeffs[1];
-  if (weight < 0)
-  {
-    weight = 0;
-  }
+  // if (weight < 0)
+  // {
+  //   weight = 0;
+  // }
   return weight - tareValue;
 }
 
