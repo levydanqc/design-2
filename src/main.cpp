@@ -14,6 +14,8 @@ uint8_t calibrationIndex = 0;
 Filter f(cutoff_freq, sampling_time, order);
 Filter f2(cutoff_freq * 10, sampling_time / 10, order);
 
+int command;
+
 int readButtons();
 void handleButtonPress(int button);
 void clearLine(int line);
@@ -127,6 +129,13 @@ void loop()
     break;
 
   default:
+    break;
+  }
+
+  switch(command)
+  {
+    
+    case calibration:
     break;
   }
 
