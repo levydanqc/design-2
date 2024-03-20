@@ -11,6 +11,9 @@ double y[nbPoints] = {0, 1, 2, 5, 10, 20, 50, 100};
 double coeffs[2];
 uint8_t calibrationIndex = 0;
 
+String options[] = {"Peser", "Compter", "Mise a zero", "Etalonnage", "Gramme <-> Once"};
+float coinWeights[] = {3.85, 1.8, 4.4, 5.7, 6.55};
+
 Filter f(cutoff_freq, sampling_time, order);
 Filter f2(cutoff_freq * 10, sampling_time / 10, order);
 
@@ -49,9 +52,6 @@ Unit currentUnit = Unit::GRAM;
 // create queue for the last 5 weights
 float lastWeights[5] = {0, 0, 0, 0, 0};
 
-String options[] = {"Peser", "Compter", "Mise a zero", "Etalonnage", "Gramme <-> Once"};
-float coinWeights[] = {3.95, 1.75, 4.4, 6.27, 6.92};
-
 noDelay updatePwmOutputTimer(5, updatePwmOutput);
 noDelay updateWeightTimer(300, updateWeight);
 noDelay updateCountTimer(30, updateCount);
@@ -72,7 +72,6 @@ void setup()
   displayMenu();
 
   getCoefs(coeffs, x, y);
-  tareValue = getWeight();
 }
 
 void loop()
@@ -140,7 +139,7 @@ void handleButtonPress(int button)
   case Btn::UP:
     if (currentMode == Mode::MENU)
     {
-      selectedOption = (selectedOption + 3) % 4;
+      selectedOption = (selectedOption + (options->length() - 1)) % options->length();
     }
     else if (currentMode == Mode::COUNT)
     {
@@ -151,7 +150,7 @@ void handleButtonPress(int button)
   case Btn::DOWN:
     if (currentMode == Mode::MENU)
     {
-      selectedOption = (selectedOption + 1) % 4;
+      selectedOption = (selectedOption + 1) % options->length();
     }
     else if (currentMode == Mode::COUNT)
     {
@@ -214,7 +213,7 @@ void displayMenu()
 
   for (int i = 0; i < 2; ++i)
   {
-    int optionIndex = (selectedOption + i) % 4;
+    int optionIndex = (selectedOption + i) % options->length();
     lcd.print((i == 0) ? ">" : " ");
     lcd.print(options[optionIndex]);
     lcd.setCursor(0, i + 1);
@@ -240,8 +239,7 @@ void updateWeight()
   }
   lastWeights[4] = weight;
 
-  String  weightStr = String(weight, 1);
-
+  String  weightStr = String(weight, 2);
   lcd.print(weightStr);
   lcd.print((currentUnit == Unit::GRAM) ? " g" : " oz");
 }
@@ -340,7 +338,7 @@ String getCount()
   // if the number is not a multiple of the coin weight, we return a string error
   int count = weight / coinWeight;
 
-  if (fmod(weight, coinWeight) > 0.3 || count < 0)
+  if (fmod(weight, coinWeight) > 0.55 || count < 0)
   {
     return "N/A";
   }
