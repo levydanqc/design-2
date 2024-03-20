@@ -32,6 +32,7 @@ void displayWeight();
 void displayCount();
 void displayTare();
 void displayCalibration();
+void displayUnit();
 
 void setupPWM16();
 void analogWrite16(uint8_t pin, uint16_t val);
@@ -44,8 +45,11 @@ uint8_t selectedOption = 0;
 float tareValue = 0;
 Mode currentMode = Mode::MENU;
 Coin countSelectedCoin = Coin::FIVE;
+Unit currentUnit = Unit::GRAM;
+// create queue for the last 5 weights
+float lastWeights[5] = {0, 0, 0, 0, 0};
 
-String options[] = {"Peser", "Compter", "Mise a zero", "Etalonnage"};
+String options[] = {"Peser", "Compter", "Mise a zero", "Etalonnage", "Gramme <-> Once"};
 float coinWeights[] = {3.95, 1.75, 4.4, 6.27, 6.92};
 
 noDelay updatePwmOutputTimer(5, updatePwmOutput);
@@ -68,6 +72,7 @@ void setup()
   displayMenu();
 
   getCoefs(coeffs, x, y);
+  tareValue = getWeight();
 }
 
 void loop()
@@ -111,6 +116,13 @@ void loop()
     if (buttonState != lastButtonState && buttonState != Btn::NONE)
     {
       displayCalibration();
+    }
+    break;
+
+  case Mode::UNIT:
+    if (buttonState != lastButtonState && buttonState != Btn::NONE)
+    {
+      displayUnit();
     }
     break;
 
@@ -221,9 +233,17 @@ void updateWeight()
 {
   lcd.setCursor(0, 1);
   float weight = getWeight();
-  
-  lcd.print(String(weight, 2));
-  lcd.print(" g");
+  // push last to queue
+  for (int i = 0; i < 4; ++i)
+  {
+    lastWeights[i] = lastWeights[i + 1];
+  }
+  lastWeights[4] = weight;
+
+  String  weightStr = String(weight, 1);
+
+  lcd.print(weightStr);
+  lcd.print((currentUnit == Unit::GRAM) ? " g" : " oz");
 }
 
 void displayCount()
@@ -283,6 +303,16 @@ void displayCalibration()
   lcd.print("puis -> SELECT");
 }
 
+void displayUnit()
+{
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Nouvelle unite:");
+  currentUnit = static_cast<Unit>((currentUnit + 1) % 2);
+  lcd.setCursor(0, 1);
+  lcd.print((currentUnit == Unit::GRAM) ? "Gramme" : "Once");
+}
+
 int getCurrentAnalog()
 {
   int rawCurrent = analogRead(currentReadingPin);
@@ -295,10 +325,11 @@ float getWeight()
   int current = getCurrentAnalog();
 
   float weight = coeffs[0] * current + coeffs[1];
-  // if (weight < 0)
-  // {
-  //   weight = 0;
-  // }
+
+  if (currentUnit == Unit::POUND)
+  {
+    weight *= 0.00220462;
+  }
   return weight - tareValue;
 }
 

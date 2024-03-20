@@ -1,5 +1,5 @@
 int stablePosition = 400;
-double error, integral = 0, prevError = 0;
+unsigned long error, integral = 0, prevError = 0;
 double Kp = 8;
 double Ki = .1;
 double Kd = 0;
@@ -16,7 +16,8 @@ enum Mode
     WEIGHT,
     COUNT,
     TARER,
-    ETALONNAGE
+    ETALONNAGE,
+    UNIT
 };
 
 enum Coin
@@ -36,4 +37,10 @@ enum Btn
     LEFT,
     SELECT,
     NONE
+};
+
+enum Unit
+{
+    GRAM,
+    POUND
 };
