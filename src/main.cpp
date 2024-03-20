@@ -232,14 +232,18 @@ void updateWeight()
 {
   lcd.setCursor(0, 1);
   float weight = getWeight();
-  // push last to queue
-  for (int i = 0; i < 4; ++i)
-  {
-    lastWeights[i] = lastWeights[i + 1];
-  }
-  lastWeights[4] = weight;
 
-  String  weightStr = String(weight, 2);
+  String  weightStr = String(weight, 1);
+  uint8_t nbDigits = weightStr.indexOf('.');
+  if (nbDigits == 2)
+  {
+    weightStr = " " + weightStr;
+  }
+  else if (nbDigits == 1)
+  {
+    weightStr = "  " + weightStr;
+  }
+
   lcd.print(weightStr);
   lcd.print((currentUnit == Unit::GRAM) ? " g" : " oz");
 }
@@ -326,7 +330,7 @@ float getWeight()
 
   if (currentUnit == Unit::POUND)
   {
-    weight *= 0.00220462;
+    weight *= 0.035274;
   }
   return weight - tareValue;
 }
