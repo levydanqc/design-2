@@ -13,8 +13,8 @@ from scipy.optimize import curve_fit
 
 
 
-# def send_command(command):
-#     ser.write(command.encode())
+def send_command(command):
+    ser.write(command.encode())
 
 class tkinterApp(tk.Tk):
 
