@@ -5,14 +5,19 @@
 #include "utils.h"
 #include <LiquidCrystal.h>
 #include <NoDelay.h>
+#include <RunningAverage.h>
 
+// double x[nbPoints] = {250, 256, 263, 290, 326, 403, 617, 984};
+// double x[nbPoints] = {246, 253, 261, 287, 323, 395, 613, 980};
 double x[nbPoints] = {231, 238, 245, 267, 306, 382, 600, 989};
 double y[nbPoints] = {0, 1, 2, 5, 10, 20, 50, 100};
 double coeffs[2];
 uint8_t calibrationIndex = 0;
 
 String options[] = {"Peser", "Compter", "Mise a zero", "Etalonnage", "Gramme <-> Once"};
-float coinWeights[] = {3.85, 1.8, 4.4, 5.7, 6.55};
+float coinWeights[] = {3.85, 1.8, 4.4, 6.2, 6.7};
+
+RunningAverage weightAverage(3);
 
 Filter f(cutoff_freq, sampling_time, order);
 Filter f2(cutoff_freq * 10, sampling_time / 10, order);
@@ -29,6 +34,7 @@ void updateButtons();
 void updatePwmOutput();
 void updateWeight();
 void updateCount();
+void updateStability();
 
 void displayMenu();
 void displayWeight();
@@ -49,11 +55,11 @@ float tareValue = 0;
 Mode currentMode = Mode::MENU;
 Coin countSelectedCoin = Coin::FIVE;
 Unit currentUnit = Unit::GRAM;
-// create queue for the last 5 weights
-float lastWeights[5] = {0, 0, 0, 0, 0};
+bool stable = false;
 
 noDelay updatePwmOutputTimer(5, updatePwmOutput);
 noDelay updateWeightTimer(300, updateWeight);
+noDelay updateStabilityTimer(500, updateStability);
 noDelay updateCountTimer(30, updateCount);
 noDelay updateButtonsTimer(10, updateButtons);
 
@@ -64,6 +70,8 @@ void setup()
   pinMode(currentReadingPin, INPUT);
   pinMode(pwmOutputPin, OUTPUT);
 
+  // weightAverage.clear();
+  // weightAverage.fillValue(0, 10);
   setupPWM16();
   lcd.begin(16, 2);
   lcd.print("Gantt Gang");
@@ -94,6 +102,7 @@ void loop()
       displayWeight();
     }
     updateWeightTimer.update();
+    updateStabilityTimer.update();
     break;
 
   case Mode::COUNT:
@@ -177,6 +186,9 @@ void handleButtonPress(int button)
       }
       else
       {
+        int current = getCurrentAnalog();
+        x[calibrationIndex] = current;
+
         getCoefs(coeffs, x, y);
         calibrationIndex = 0;
         currentMode = Mode::MENU;
@@ -224,28 +236,49 @@ void displayWeight()
 {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Masse: ");
+  lcd.print("Masse ");
+  lcd.print((currentUnit == Unit::GRAM) ? "(g)" : "(oz)");
+  lcd.print(":");
   clearLine(1);
+  stable = false;
 }
 
 void updateWeight()
 {
   lcd.setCursor(0, 1);
   float weight = getWeight();
+  weightAverage.addValue(weight);
 
-  String  weightStr = String(weight, 1);
-  uint8_t nbDigits = weightStr.indexOf('.');
-  if (nbDigits == 2)
+  String weightStr = String(weight, 1);
+  if (!stable || weightStr == "0.0")
   {
-    weightStr = " " + weightStr;
-  }
-  else if (nbDigits == 1)
-  {
-    weightStr = "  " + weightStr;
-  }
+    uint8_t nbDigits = weightStr.indexOf('.');
+    if (nbDigits == 2)
+    {
+      weightStr = " " + weightStr;
+    }
+    else if (nbDigits == 1)
+    {
+      weightStr = "  " + weightStr;
+    }
 
-  lcd.print(weightStr);
-  lcd.print((currentUnit == Unit::GRAM) ? " g" : " oz");
+    lcd.print(weightStr);
+  }
+}
+
+void updateStability()
+{
+  lcd.setCursor(14, 1);
+  if (weightAverage.getStandardDeviation() > 0.1)
+  {
+    lcd.print(":(");
+    stable = false;
+  }
+  else
+  {
+    lcd.print(":)");
+    stable = true;
+  }
 }
 
 void displayCount()
@@ -326,7 +359,7 @@ float getWeight()
 {
   int current = getCurrentAnalog();
 
-  float weight = coeffs[0] * current + coeffs[1];
+  float weight = coeffs[0] * float(current) + coeffs[1];
 
   if (currentUnit == Unit::POUND)
   {
@@ -339,7 +372,7 @@ String getCount()
 {
   float weight = getWeight();
   float coinWeight = coinWeights[static_cast<int>(countSelectedCoin)];
-  // if the number is not a multiple of the coin weight, we return a string error
+
   int count = weight / coinWeight;
 
   if (fmod(weight, coinWeight) > 0.55 || count < 0)

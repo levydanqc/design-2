@@ -56,7 +56,7 @@ void getCoefs(double *coeffs, double *x, double *y)
   fitCurve(1, nbPoints, x, y, 2, coeffs);
 
   Serial.print("Coeffs: ");
-  Serial.print(coeffs[0]);
+  Serial.print(coeffs[0], 4);
   Serial.print(", ");
-  Serial.println(coeffs[1]);
+  Serial.println(coeffs[1], 4);
 }
