@@ -84,6 +84,8 @@ class menu(tk.Frame):
 
 
 class weight(tk.Frame):
+    # correction = -1 * float(ser.readline().decode().strip())
+    correction = -1 * float(0)
     def __init__(self, parent, controller):
         # tk.Frame.__init__(self, parent)
         super().__init__(parent)
@@ -114,9 +116,9 @@ class weight(tk.Frame):
         self.lire_poids_arduino()
 
     def lire_poids_arduino(self):
-        poids = self.lire_poids_aleatoire()  # Remplacer par la lecture réelle depuis l'Arduino
+        poids = self.lire_poids_aleatoire() + weight.correction # Remplacer par la lecture réelle depuis l'Arduino
         # poids = ser.readline().decode().strip()
-        self.poids_valeur.set(str(poids))
+        self.poids_valeur.set(str(round(poids, 1)))
         self.after(1000, self.lire_poids_arduino)
 
     def lire_poids_aleatoire(self):
@@ -126,9 +128,9 @@ class weight(tk.Frame):
     
     def tarer(self):
         # send_command('t')
-        # correction = -1 * float(ser.readline().decode().strip())
-        # envoyer la correction à l'arduino
-        print('tare effectué')
+        # weight.correction = -1 * float(ser.readline().decode().strip())
+        weight.correction = -1* self.lire_poids_aleatoire()
+        print('Tare effectué')
 
 
 class etalonnage(tk.Frame):
@@ -221,6 +223,7 @@ class etalonnage(tk.Frame):
 
 
 class choix(tk.Frame):
+    correction = -1 * float(0)
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
@@ -298,16 +301,21 @@ class choix(tk.Frame):
         ref = {'0,05':3.95, '0,10':1.75, '0,25':4.4, '1':6.27, '2':6.92}
         poids = self.lire_poids_aleatoire()
         # poids = ser.readline().decode().strip()
-        self.poids_valeur_1.set(f'{round(poids/ref["0,05"])}')
-        self.poids_valeur_2.set(f'{round(poids/ref["0,10"])}')
-        self.poids_valeur_3.set(f'{round(poids/ref["0,25"])}')
-        self.poids_valeur_4.set(f'{round(poids/ref["1"])}')
-        self.poids_valeur_5.set(f'{round(poids/ref["2"])}')
+        self.poids_valeur_1.set(f'{round((poids-choix.correction)/ref["0,05"])}')
+        self.poids_valeur_2.set(f'{round((poids-choix.correction)/ref["0,10"])}')
+        self.poids_valeur_3.set(f'{round((poids-choix.correction)/ref["0,25"])}')
+        self.poids_valeur_4.set(f'{round((poids-choix.correction)/ref["1"])}')
+        self.poids_valeur_5.set(f'{round((poids-choix.correction)/ref["2"])}')
         self.after(1000, self.multiple)
 
     def lire_poids_aleatoire(self):
         # Simulation de la lecture du poids
         return round(random.uniform(0, 100), 2)
+    
+    def tare(self):
+        # choix.correction = -1 * float(ser.readline().decode().strip())
+        choix.correction = -1* self.lire_poids_aleatoire()
+        print('Tare effectué')
 
 if __name__ == "__main__":
     app = tkinterApp()
