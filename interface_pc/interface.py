@@ -6,10 +6,10 @@ import time
 from scipy.optimize import curve_fit
 
 
-# ser = serial.Serial('/dev/cu.usbmodem11301', 9600)
+ser = serial.Serial('/dev/cu.usbmodem11301', 9600)
 
-# arduino_port = '/dev/cu.usbmodem11301'
-# baud_rate = 9600
+arduino_port = '/dev/cu.usbmodem11301'
+baud_rate = 9600
 
 
 
@@ -211,14 +211,22 @@ class etalonnage(tk.Frame):
     def next(self):
         # ajouter l'enregistrement du courant
         # etalonnage.valeur_mesure.append(float(ser.readline().decode().strip()))
+        
         self.phrase()
 
 
 
     def fin(self):
-        # force = [0.00981, 0.01962, 0.04905, 0.0981, 0.1962, 0.4905, 0.6867, 0.981]
-        # k_f = self.mon_curve_fit(self.droite, force, etalonnage.valeur_mesure)
+        force = [0.00981, 0.01962, 0.04905, 0.0981, 0.1962, 0.4905, 0.6867, 0.981]
+        etalonnage.valeur_mesure = [1, 2, 5, 10, 20, 50, 70, 100]
+        k_f = self.mon_curve_fit(self.droite, force, etalonnage.valeur_mesure)
         # Envoyer k_f[0][0] et k_f[0][1] à l'arduino
+        try:
+            ser = serial.Serial(arduino_port, baud_rate)
+        except serial.SerialException:
+            print("Failed to connect to Arduino.")
+        send_command(f'a{k_f[0][0]}, {k_f[0][1]}')
+        print(f'{k_f[0][0]}, {k_f[0][1]}')
 
         self.phrase_valeur.set("Début de l'étalonnage. \n Appuyez sur start pour passer à la première étape")
         etalonnage.étapes = 0
