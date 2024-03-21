@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-import time
 import serial
 import random
 import time
@@ -72,13 +71,13 @@ class menu(tk.Frame):
 
         self.frame_boutons = ttk.Frame(self)
         self.frame_boutons.pack(side='top',padx=20, pady=20)
-        
-        self.bouton_fonction1 = ttk.Button(self.frame_boutons, text="Poids", command = lambda : controller.show_frame(weight))
+
+        self.bouton_fonction1 = ttk.Button(self.frame_boutons, text="Masse", command = lambda : controller.show_frame(weight))
         self.bouton_fonction1.pack(pady=10)
-        
+
         self.bouton_fonction2 = ttk.Button(self.frame_boutons, text="Étalonnage", command=lambda : controller.show_frame(etalonnage))
         self.bouton_fonction2.pack(pady=10)
-        
+
         self.bouton_fonction3 = ttk.Button(self.frame_boutons, text="Compter les pièces", command=lambda : controller.show_frame(choix))
         self.bouton_fonction3.pack(pady=10)
 
@@ -86,6 +85,7 @@ class menu(tk.Frame):
 class weight(tk.Frame):
     # correction = -1 * float(ser.readline().decode().strip())
     correction = -1 * float(0)
+    unité = 0
     def __init__(self, parent, controller):
         # tk.Frame.__init__(self, parent)
         super().__init__(parent)
@@ -94,9 +94,9 @@ class weight(tk.Frame):
         # self.geometry('400x200')
         self.frame_poids = ttk.Frame(self)
         self.frame_poids.pack(side="top", padx=20, pady=20)
-        self.poids_label = ttk.Label(self.frame_poids, text="Poids mesuré:", font=("Arial", 14))
+        self.poids_label = ttk.Label(self.frame_poids, text="Masse mesuré:", font=("Arial", 14))
         self.poids_label.pack()
-        
+
         self.poids_valeur = tk.StringVar()
         self.poids_valeur.set("0")
         self.poids_affichage = ttk.Label(self.frame_poids, textvariable=self.poids_valeur, font=("Arial", 20))
@@ -106,9 +106,12 @@ class weight(tk.Frame):
 
         self.frame_boutons = ttk.Frame(self)
         self.frame_boutons.pack(side='bottom',padx=20, pady=20)
-        
+
         self.bouton_fonction2 = ttk.Button(self.frame_boutons, text="Tare", command= self.tarer)
         self.bouton_fonction2.pack(pady=10)
+
+        self.bouton_fonction3 = ttk.Button(self.frame_boutons, text="Grammes <--> onces", command = self.changement_unité)
+        self.bouton_fonction3.pack(pady=10)
 
         self.bouton_fonction1 = ttk.Button(self.frame_boutons, text="Menu", command = lambda : controller.show_frame(menu))
         self.bouton_fonction1.pack(pady=10)
@@ -116,21 +119,30 @@ class weight(tk.Frame):
         self.lire_poids_arduino()
 
     def lire_poids_arduino(self):
-        poids = self.lire_poids_aleatoire() + weight.correction # Remplacer par la lecture réelle depuis l'Arduino
-        # poids = ser.readline().decode().strip()
-        self.poids_valeur.set(str(round(poids, 1)))
+        poids = self.lire_poids_aleatoire() + weight.correction
+        # poids = ser.readline().decode().strip() + weight.correction
+        if weight.unité == 0:
+            self.poids_valeur.set(f'{str(round(poids, 1))} g')
+        elif weight.unité ==1:
+            self.poids_valeur.set(f'{str(round((poids*0.0353), 3))} oz')
         self.after(1000, self.lire_poids_arduino)
 
     def lire_poids_aleatoire(self):
         # Simulation de la lecture du poids
         return round(random.uniform(0, 100), 2)
 
-    
     def tarer(self):
         # send_command('t')
         # weight.correction = -1 * float(ser.readline().decode().strip())
         weight.correction = -1* self.lire_poids_aleatoire()
         print('Tare effectué')
+
+    def changement_unité(self):
+        if weight.unité == 0:
+            weight.unité = 1
+        elif weight.unité == 1:
+            weight.unité = 0
+
 
 
 class etalonnage(tk.Frame):
@@ -153,7 +165,7 @@ class etalonnage(tk.Frame):
         self.frame_phrase.pack(side="top", padx=20, pady=20)
         self.phrase_label = ttk.Label(self.frame_phrase)
         self.phrase_label.pack()
-        
+
         self.phrase_valeur = tk.StringVar()
         self.phrase_valeur.set("Début de l'étalonnage. \n Appuyez sur start pour passer à la première étape")
         self.phrase_affichage = ttk.Label(self.frame_phrase, textvariable=self.phrase_valeur, font=("Arial", 20))
@@ -229,7 +241,7 @@ class choix(tk.Frame):
 
         self.frame_poids = ttk.Frame(self)
         self.frame_poids.pack(side="top", padx=20, pady=20)
-        self.poids_label = ttk.Label(self.frame_poids, text="Comptage de pièce", font=("Arial", 30))
+        self.poids_label = ttk.Label(self.frame_poids, text="Comptage de pièces", font=("Arial", 30))
         self.poids_label.pack()
 
         # 0,05$
@@ -237,7 +249,7 @@ class choix(tk.Frame):
         self.frame_poids_1.pack(side="left", padx=20, pady=20)
         self.poids_label_1 = ttk.Label(self.frame_poids_1, text="0,05$:", font=("Arial", 14))
         self.poids_label_1.pack()
-        
+
         self.poids_valeur_1 = tk.StringVar()
         self.poids_valeur_1.set("0")
         self.poids_affichage_1 = ttk.Label(self.frame_poids_1, textvariable=self.poids_valeur_1, font=("Arial", 20))
@@ -249,7 +261,7 @@ class choix(tk.Frame):
         self.frame_poids_2.pack(side="left", padx=20, pady=20)
         self.poids_label_2 = ttk.Label(self.frame_poids_2, text="0,10$:", font=("Arial", 14))
         self.poids_label_2.pack()
-        
+
         self.poids_valeur_2 = tk.StringVar()
         self.poids_valeur_2.set("0")
         self.poids_affichage_2 = ttk.Label(self.frame_poids_2, textvariable=self.poids_valeur_2, font=("Arial", 20))
@@ -260,7 +272,7 @@ class choix(tk.Frame):
         self.frame_poids_3.pack(side="left", padx=20, pady=20)
         self.poids_label_3 = ttk.Label(self.frame_poids_3, text="0,25$:", font=("Arial", 14))
         self.poids_label_3.pack()
-        
+
         self.poids_valeur_3 = tk.StringVar()
         self.poids_valeur_3.set("0")
         self.poids_affichage_3 = ttk.Label(self.frame_poids_3, textvariable=self.poids_valeur_3, font=("Arial", 20))
@@ -271,7 +283,7 @@ class choix(tk.Frame):
         self.frame_poids_4.pack(side="left", padx=20, pady=20)
         self.poids_label_4 = ttk.Label(self.frame_poids_4, text="1$:", font=("Arial", 14))
         self.poids_label_4.pack()
-        
+
         self.poids_valeur_4 = tk.StringVar()
         self.poids_valeur_4.set("0")
         self.poids_affichage_4 = ttk.Label(self.frame_poids_4, textvariable=self.poids_valeur_4, font=("Arial", 20))
@@ -282,7 +294,7 @@ class choix(tk.Frame):
         self.frame_poids_5.pack(side="left", padx=20, pady=20)
         self.poids_label_5 = ttk.Label(self.frame_poids_5, text="2$:", font=("Arial", 14))
         self.poids_label_5.pack()
-        
+
         self.poids_valeur_5 = tk.StringVar()
         self.poids_valeur_5.set("0")
         self.poids_affichage_5 = ttk.Label(self.frame_poids_5, textvariable=self.poids_valeur_5, font=("Arial", 20))
@@ -291,7 +303,7 @@ class choix(tk.Frame):
         # Bouton
         self.frame_boutons = ttk.Frame(self)
         self.frame_boutons.pack(side='bottom',padx=20, pady=20)
-        
+
         self.bouton_fonction1 = ttk.Button(self.frame_boutons, text="Menu", command = lambda : controller.show_frame(menu))
         self.bouton_fonction1.pack(pady=10)
 
@@ -311,7 +323,7 @@ class choix(tk.Frame):
     def lire_poids_aleatoire(self):
         # Simulation de la lecture du poids
         return round(random.uniform(0, 100), 2)
-    
+
     def tare(self):
         # choix.correction = -1 * float(ser.readline().decode().strip())
         choix.correction = -1* self.lire_poids_aleatoire()
@@ -320,4 +332,3 @@ class choix(tk.Frame):
 if __name__ == "__main__":
     app = tkinterApp()
     app.mainloop()
-
