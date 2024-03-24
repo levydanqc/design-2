@@ -326,7 +326,7 @@ void displayTare()
   lcd.setCursor(0, 1);
   lcd.print("effectuee");
   tareValue += getWeight();
-  Serial.println("Tared! : " + String(tareValue));
+  //Serial.println("Tared! : " + String(tareValue));
 }
 
 void displayCalibration()
@@ -365,6 +365,7 @@ float getWeight()
   {
     weight *= 0.035274;
   }
+  Serial.println(current);
   return weight - tareValue;
 }
 
