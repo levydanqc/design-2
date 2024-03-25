@@ -10,7 +10,7 @@ import numpy as np
 
 print("""Début du programme""")
 
-ser = serial.Serial('/dev/cu.usbmodem101', 115200)
+ser = serial.Serial('/dev/cu.usbmodem1101', 115200)
 print("""Connexion établie avec l'Arduino""")
 print("""Mettre la balance dans le mode 'Peser et PC'""")
 

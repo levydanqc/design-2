@@ -15,7 +15,7 @@ double coeffs[2];
 uint8_t calibrationIndex = 0;
 
 String options[] = {"Peser", "Compter", "Mise a zero", "Etalonnage", "Gramme <-> Once"};
-float coinWeights[] = {3.85, 1.8, 4.4, 6.2, 6.7};
+float coinWeights[] = {3.9, 2.0, 4.7, 6.5, 6.9};
 
 RunningAverage weightAverage(3);
 
@@ -60,7 +60,7 @@ bool stable = false;
 noDelay updatePwmOutputTimer(5, updatePwmOutput);
 noDelay updateWeightTimer(300, updateWeight);
 noDelay updateStabilityTimer(500, updateStability);
-noDelay updateCountTimer(30, updateCount);
+noDelay updateCountTimer(400, updateCount);
 noDelay updateButtonsTimer(10, updateButtons);
 
 void setup()
@@ -261,6 +261,9 @@ void updateWeight()
     {
       weightStr = "  " + weightStr;
     }
+    else {
+      weightStr = String(weight, 2);
+    }
 
     lcd.print(weightStr);
   }
@@ -376,7 +379,7 @@ String getCount()
 
   int count = weight / coinWeight;
 
-  if (fmod(weight, coinWeight) > 0.55 || count < 0)
+  if (fmod(weight, coinWeight) > 0.6 || count < 0)
   {
     return "N/A";
   }
